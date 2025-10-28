@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root {
+    color-scheme: dark light;
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #323f58, #111827);
+    min-height: 100vh;
+    color: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .canvas {
+    width: min(960px, 92vw);
+    background: rgba(17, 24, 39, 0.92);
+    border-radius: 16px;
+    padding: 48px;
+    box-shadow:
+      0 20px 45px rgba(15, 23, 42, 0.4),
+      0 12px 20px rgba(15, 23, 42, 0.3);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  h1 {
+    font-size: clamp(32px, 4vw, 44px);
+    margin-bottom: 8px;
+  }
+
+  .tagline {
+    font-size: 18px;
+    color: rgba(226, 232, 240, 0.8);
+    margin-bottom: 36px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    backdrop-filter: blur(10px);
+  }
+
+  .card h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #e0f2fe;
+  }
+
+  .meta {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .meta li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    padding-bottom: 8px;
+  }
+
+  .meta li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .endpoint {
+    display: block;
+    text-decoration: none;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: 12px;
+    padding: 18px;
+    color: #eff6ff;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .endpoint:hover {
+    transform: translateY(-3px);
+    border-color: rgba(96, 165, 250, 0.6);
+  }
+
+  .endpoint span {
+    display: block;
+  }
+
+  .endpoint .label {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .endpoint .path {
+    font-family: "Fira Code", monospace;
+    font-size: 14px;
+    opacity: 0.85;
+  }
+
+  .endpoint .description {
+    margin-top: 6px;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  @media (max-width: 640px) {
+    .canvas {
+      padding: 28px;
+    }
+
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="canvas">
+  <h1>{{ title }}</h1>
+  <p class="tagline">Operational dashboard • {{ settings.APP_ENV|upper }} environment</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Runtime</h2>
+      <ul class="meta">
+        <li><span>Host</span><span>{{ settings.HOST }}:{{ settings.PORT }}</span></li>
+        <li><span>External URL</span><span>{{ settings.EXTERNAL_URL or "—" }}</span></li>
+        <li><span>Proxy Depth</span><span>{{ settings.TRUST_PROXY }}</span></li>
+        <li><span>Debug</span><span>{{ "Enabled" if settings.APP_DEBUG else "Disabled" }}</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Security</h2>
+      <ul class="meta">
+        <li><span>UI Username</span><span>{{ settings.UI_USERNAME }}</span></li>
+        <li><span>API Token</span><span>{{ settings.API_TOKEN[:4] ~ "••••" if settings.API_TOKEN else "—" }}</span></li>
+        <li><span>CORS Origins</span><span>{{ settings.CORS_ORIGINS|length }}</span></li>
+        <li><span>Allowed Hosts</span><span>{{ settings.ALLOWED_HOSTS|length }}</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 24px;">
+    <h2>Key Endpoints</h2>
+    <div class="grid">
+      {% for endpoint in endpoints %}
+      <a class="endpoint" href="{{ endpoint.path }}">
+        <span class="label">{{ endpoint.label }}</span>
+        <span class="path">{{ endpoint.path }}</span>
+        <span class="description">{{ endpoint.description }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

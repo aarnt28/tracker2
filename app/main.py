@@ -6,6 +6,7 @@ from app.core.settings import settings
 from app.core.logging import setup_logging
 from app.core.lifespan import lifespan
 from app.api.v1.router import api_router
+from app.ui.router import router as ui_router
 
 setup_logging()
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
@@ -26,6 +27,7 @@ app.add_middleware(
 async def health(request: Request):
     return {"ok": True, "client": request.client.host}
 
+app.include_router(ui_router)
 app.include_router(api_router, prefix="/api/v1")
 
 @app.on_event("startup")
