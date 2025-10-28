@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import AnyHttpUrl
+from pydantic import AnyHttpUrl, field_validator
 from typing import List
 
 class Settings(BaseSettings):
@@ -21,5 +21,23 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: List[AnyHttpUrl] = []
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: str | List[AnyHttpUrl]) -> List[str] | List[AnyHttpUrl]:
+        if isinstance(value, str):
+            if not value.strip():
+                return []
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
+    def parse_allowed_hosts(cls, value: str | List[str]) -> List[str]:
+        if isinstance(value, str):
+            if not value.strip():
+                return []
+            return [host.strip() for host in value.split(",") if host.strip()]
+        return value
 
 settings = Settings()
