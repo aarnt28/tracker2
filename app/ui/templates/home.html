@@ -19,7 +19,7 @@
   }
 
   .canvas {
-    width: min(960px, 92vw);
+    width: min(1040px, 94vw);
     background: rgba(17, 24, 39, 0.92);
     border-radius: 16px;
     padding: 48px;
@@ -81,6 +81,11 @@
     padding-bottom: 0;
   }
 
+  .mono {
+    font-family: "Fira Code", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: 0.01em;
+  }
+
   .endpoint {
     display: block;
     text-decoration: none;
@@ -108,7 +113,7 @@
   }
 
   .endpoint .path {
-    font-family: "Fira Code", monospace;
+    font-family: "Fira Code", "SFMono-Regular", Menlo, monospace;
     font-size: 14px;
     opacity: 0.85;
   }
@@ -119,6 +124,115 @@
     opacity: 0.8;
   }
 
+  .data-card {
+    margin-top: 24px;
+  }
+
+  .tabs {
+    margin-top: 16px;
+  }
+
+  .tab-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .tab-button {
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    background: rgba(59, 130, 246, 0.08);
+    color: #e0f2fe;
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+  }
+
+  .tab-button .badge {
+    font-size: 13px;
+    background: rgba(14, 165, 233, 0.45);
+    color: #e0f2fe;
+    border-radius: 999px;
+    padding: 2px 10px;
+  }
+
+  .tab-button.active {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(96, 165, 250, 0.65);
+  }
+
+  .tab-panel {
+    display: none;
+    animation: fadeIn 0.18s ease;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    background: rgba(15, 23, 42, 0.55);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead th {
+    text-align: left;
+    padding: 12px 16px;
+    color: rgba(226, 232, 240, 0.92);
+    background: rgba(30, 41, 59, 0.75);
+    font-weight: 600;
+  }
+
+  tbody td {
+    padding: 11px 16px;
+    color: rgba(226, 232, 240, 0.9);
+    border-top: 1px solid rgba(71, 85, 105, 0.35);
+    vertical-align: top;
+  }
+
+  tbody tr:hover {
+    background: rgba(30, 64, 175, 0.12);
+  }
+
+  .empty-state {
+    padding: 32px;
+    text-align: center;
+    border: 1px dashed rgba(148, 163, 184, 0.4);
+    border-radius: 12px;
+    color: rgba(226, 232, 240, 0.7);
+    background: rgba(30, 41, 59, 0.45);
+  }
+
+  .helper {
+    margin-top: 14px;
+    font-size: 13px;
+    color: rgba(148, 163, 184, 0.85);
+  }
+
   @media (max-width: 640px) {
     .canvas {
       padding: 28px;
@@ -126,6 +240,36 @@
 
     .grid {
       grid-template-columns: 1fr;
+    }
+
+    thead {
+      display: none;
+    }
+
+    table,
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(71, 85, 105, 0.4);
+      padding: 12px 0;
+    }
+
+    tbody td {
+      border: none;
+      padding: 6px 0;
+    }
+
+    tbody td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+      color: rgba(148, 197, 255, 0.9);
     }
   }
 </style>
@@ -162,11 +306,185 @@
       {% for endpoint in endpoints %}
       <a class="endpoint" href="{{ endpoint.path }}">
         <span class="label">{{ endpoint.label }}</span>
-        <span class="path">{{ endpoint.path }}</span>
+        <span class="path mono">{{ endpoint.path }}</span>
         <span class="description">{{ endpoint.description }}</span>
       </a>
       {% endfor %}
     </div>
   </div>
+
+  <div class="card data-card">
+    <h2>Data Explorer</h2>
+    <p class="helper">Showing up to {{ max_rows }} records per table. For complete exports, use the API or database tools.</p>
+    <div class="tabs">
+      <div class="tab-list" role="tablist">
+        <button class="tab-button active" type="button" data-target="clients">
+          Clients <span class="badge">{{ clients.total }}</span>
+        </button>
+        <button class="tab-button" type="button" data-target="hardware">
+          Hardware Items <span class="badge">{{ hardware_items.total }}</span>
+        </button>
+        <button class="tab-button" type="button" data-target="inventory">
+          Inventory <span class="badge">{{ inventory.total }}</span>
+        </button>
+        <button class="tab-button" type="button" data-target="tickets">
+          Tickets <span class="badge">{{ tickets.total }}</span>
+        </button>
+      </div>
+
+      <div class="tab-panel active" data-panel="clients">
+        {% if clients.rows %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Notes</th>
+                <th>Hardware</th>
+                <th>Tickets</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for client in clients.rows %}
+              <tr>
+                <td data-label="Name">{{ client.name }}</td>
+                <td data-label="Email">{{ client.email or "—" }}</td>
+                <td data-label="Phone">{{ client.phone or "—" }}</td>
+                <td data-label="Notes">{{ client.notes or "—" }}</td>
+                <td data-label="Hardware" class="mono">{{ client.hardware_count }}</td>
+                <td data-label="Tickets" class="mono">{{ client.ticket_count }}</td>
+                <td data-label="Created" class="mono">{{ client.created_at or "—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No clients recorded yet.</div>
+        {% endif %}
+      </div>
+
+      <div class="tab-panel" data-panel="hardware">
+        {% if hardware_items.rows %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Serial</th>
+                <th>Model</th>
+                <th>Status</th>
+                <th>Client</th>
+                <th>Purchased</th>
+                <th>Warranty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in hardware_items.rows %}
+              <tr>
+                <td data-label="Name">{{ item.name }}</td>
+                <td data-label="Serial" class="mono">{{ item.serial or "—" }}</td>
+                <td data-label="Model">{{ item.model or "—" }}</td>
+                <td data-label="Status">{{ item.status }}</td>
+                <td data-label="Client">{{ item.client or "—" }}</td>
+                <td data-label="Purchased" class="mono">{{ item.purchase_date or "—" }}</td>
+                <td data-label="Warranty" class="mono">{{ item.warranty_expiration or "—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No hardware items have been added yet.</div>
+        {% endif %}
+      </div>
+
+      <div class="tab-panel" data-panel="inventory">
+        {% if inventory.rows %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Reorder</th>
+                <th>Location</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in inventory.rows %}
+              <tr>
+                <td data-label="SKU" class="mono">{{ item.sku }}</td>
+                <td data-label="Name">{{ item.name }}</td>
+                <td data-label="Quantity" class="mono">{{ item.quantity }}</td>
+                <td data-label="Reorder" class="mono">{{ item.reorder_level }}</td>
+                <td data-label="Location">{{ item.location or "—" }}</td>
+                <td data-label="Updated" class="mono">{{ item.updated_at or "—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">Inventory is currently empty.</div>
+        {% endif %}
+      </div>
+
+      <div class="tab-panel" data-panel="tickets">
+        {% if tickets.rows %}
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Client</th>
+                <th>Hardware</th>
+                <th>Opened</th>
+                <th>Closed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ticket in tickets.rows %}
+              <tr>
+                <td data-label="Title">{{ ticket.title }}</td>
+                <td data-label="Status">{{ ticket.status }}</td>
+                <td data-label="Priority">{{ ticket.priority }}</td>
+                <td data-label="Client">{{ ticket.client or "—" }}</td>
+                <td data-label="Hardware">{{ ticket.hardware or "—" }}</td>
+                <td data-label="Opened" class="mono">{{ ticket.opened_at or "—" }}</td>
+                <td data-label="Closed" class="mono">{{ ticket.closed_at or "—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No tickets have been logged yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+  const tabButtons = Array.from(document.querySelectorAll(".tab-button"));
+  const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
+
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.target;
+      tabButtons.forEach((btn) => btn.classList.toggle("active", btn === button));
+      tabPanels.forEach((panel) =>
+        panel.classList.toggle("active", panel.dataset.panel === target)
+      );
+    });
+  });
+</script>
 {% endblock %}
