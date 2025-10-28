@@ -1,0 +1,11 @@
+{
+  "name": "tracker2",
+  "build": {
+    "dockerfile": "../docker/Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "appuser",
+  "forwardPorts": [9444],
+  "runArgs": ["--env-file", ".env"],
+  "postCreateCommand": "pip install -e .[dev] && pre-commit install"
+}

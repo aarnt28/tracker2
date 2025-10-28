@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_URL=${DB_URL:-postgresql+psycopg://tracker2:tracker2@db:5432/tracker2}
+      - APP_ENV=${APP_ENV:-prod}
+      - HOST=0.0.0.0
+      - PORT=9444
+    ports:
+      - "9444:9444"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: tracker2
+      POSTGRES_PASSWORD: tracker2
+      POSTGRES_DB: tracker2
+    ports:
+      - "5542:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
